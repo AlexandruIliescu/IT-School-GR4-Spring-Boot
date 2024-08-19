@@ -16,7 +16,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+        String name = "Maria"; //local variable
         if (user.getEmail().length() < 3) {
+
             throw new RuntimeException("Invalid email address.");
         }
         user.setId(UUID.randomUUID());
@@ -26,6 +28,7 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+
 
     @Override
     public List<User> getUsers() {
