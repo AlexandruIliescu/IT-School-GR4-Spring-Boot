@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,9 +23,7 @@ public class WeatherServiceImpl implements WeatherService {
 
     @Override
     public Weather getCityWeather(String city) throws IOException {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(apiValue + "key=" + key + "&q=" + city).build();
-        Response response = client.newCall(request).execute();
+        Response response = getWeatherApiResponse(city);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String responseBody = response.body().string();
@@ -34,13 +33,23 @@ public class WeatherServiceImpl implements WeatherService {
 
         LocalDateTime localDateTime = LocalDateTime.parse(jsonNode.get("current").get("last_updated").asText(), formatter);
 
+        Weather weatherResponse = getWeatherResponse(jsonNode, localDateTime);
+        log.info(weatherResponse.toString());
+
+        return weatherResponse;
+    }
+
+    private Response getWeatherApiResponse(String city) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(apiValue + "key=" + key + "&q=" + city).build();
+        return client.newCall(request).execute();
+    }
+
+    private Weather getWeatherResponse(JsonNode jsonNode, LocalDateTime localDateTime) {
         Weather weatherResponse = new Weather();
         weatherResponse.setCity(jsonNode.get("location").get("name").asText());
         weatherResponse.setDescription(jsonNode.get("current").get("condition").get("text").asText());
         weatherResponse.setLastUpdated(localDateTime);
-
-        log.info(weatherResponse.toString());
-
         return weatherResponse;
     }
 }
